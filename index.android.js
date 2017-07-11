@@ -1,26 +1,62 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
 
-import React, { Component } from 'react';
+ import React, { Component } from 'react';
 import {
   AppRegistry,
   StyleSheet,
   Text,
   View
 } from 'react-native';
-import SQLite from "react-native-sqlite-storage"
+
+let SQLite = require('react-native-sqlite-storage')
 
 export default class QuizStoreAsync extends Component {
+
+  constructor(props) {
+    super(props)
+
+    this.state = {
+      record: null
+    }
+
+    let db = SQLite.openDatabase({name: 'example.db', createFromLocation : "~example.db", location: 'Library'}, this.openCB, this.errorCB);
+    db.transaction((tx) => {
+      tx.executeSql('SELECT * FROM test', [], (tx, results) => {
+          console.log("Query completed");
+
+          // Get rows with Web SQL Database spec compliance.
+
+          var len = results.rows.length;
+          for (let i = 0; i < len; i++) {
+            let row = results.rows.item(i);
+            console.log(`Record: ${row.name}`);
+            this.setState({record: row});
+          }
+        });
+    });
+
+  }
+
+  errorCB(err) {
+    console.log("SQL Error: " + err);
+  }
+
+  successCB() {
+    console.log("SQL executed fine");
+  }
+
+  openCB() {
+    console.log("Database OPENED");
+  }
+
   render() {
     return (
       <View style={styles.container}>
         <Text style={styles.welcome}>
-         Quiz async store sql
+          This is an example with sqlite3 and a prepopulated database. Enjoy!
         </Text>
-        
+        <Text style={styles.instructions}>
+          {this.state.record !== null ? 'Success: ' + this.state.record.name : 'Waiting...'}
+        </Text>
       </View>
     );
   }
